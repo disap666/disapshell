@@ -5,7 +5,7 @@ Hyprland + Quickshell. Док, виджеты, уведомления, меню 
 ## Установка
 
 ```sh
-git clone <адрес репозитория> rice
+git clone git@github.com:disap666/disapshell.git rice
 cd rice
 ./install.sh
 ```
