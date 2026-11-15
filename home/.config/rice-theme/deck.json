@@ -1,0 +1,53 @@
+{
+  "autoHide": true,
+  "zoom": true,
+  "showRunning": true,
+  "showLauncher": true,
+  "alignment": "center",
+  "hideDelay": 450,
+  "tintIcons": false,
+  "apps": [
+    {
+      "id": "kitty",
+      "name": "Терминал",
+      "icon": "kitty",
+      "match": "^kitty$"
+    },
+    {
+      "id": "org.kde.dolphin",
+      "name": "Файлы",
+      "icon": "org.kde.dolphin",
+      "match": "dolphin"
+    },
+    {
+      "id": "google-chrome",
+      "name": "Chrome",
+      "icon": "google-chrome",
+      "match": "google-chrome|chrome"
+    },
+    {
+      "id": "code",
+      "name": "VS Code",
+      "icon": "vscode",
+      "match": "^code$|code-oss"
+    },
+    {
+      "id": "org.telegram.desktop",
+      "name": "Telegram",
+      "icon": "org.telegram.desktop",
+      "match": "telegram"
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "icon": "discord",
+      "match": "discord"
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "icon": "spotify",
+      "match": "spotify"
+    }
+  ]
+}

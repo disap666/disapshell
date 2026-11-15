@@ -1,0 +1,17 @@
+#!/bin/sh
+# Starts the shared RiceDesktop process (dock, music, weather, memory, notifications)
+# exactly once. Safe to call concurrently: flock serialises the check-and-start.
+running() { qs ipc -c RiceDesktop show >/dev/null 2>&1; }
+running && exit 0
+lock="${XDG_RUNTIME_DIR:-/tmp}/rice-desktop.lock"
+exec 9>"$lock"
+flock 9
+running && exit 0
+# Software video decode: hardware probing loads the NVIDIA driver and wakes the dGPU.
+# Transparent huge pages are off for this process, they double its memory.
+QT_FFMPEG_DECODING_HW_DEVICE_TYPES=, python3 -c 'import ctypes, os, sys
+ctypes.CDLL(None).prctl(41, 1, 0, 0, 0)
+os.execvp(sys.argv[1], sys.argv[1:])' qs -d -n -c RiceDesktop >/dev/null 2>&1 9>&-
+i=0
+while [ "$i" -lt 50 ]; do running && exit 0; i=$((i + 1)); sleep 0.1; done
+exit 1

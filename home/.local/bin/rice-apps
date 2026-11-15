@@ -1,0 +1,7 @@
+#!/bin/sh
+# The menu lives in the shared RiceDesktop process.
+call_menu() { qs ipc -c RiceDesktop call apps toggle >/dev/null 2>&1; }
+call_menu && exit 0
+~/.local/bin/rice-desktop && call_menu && exit 0
+notify-send 'Приложения' 'Не удалось открыть меню приложений.'
+exit 1

@@ -1,0 +1,39 @@
+#!/bin/sh
+# Игровой режим: Hyprland без анимаций, размытия, теней, отступов и скруглений,
+# всплывающие уведомления скрыты. Выключение возвращает конфиг как был.
+# rice-gamemode on|off|toggle|status
+state="${XDG_RUNTIME_DIR:-/tmp}/rice-gamemode"
+notif() { qs -c RiceDesktop ipc call notifications "$1" 2>/dev/null; }
+
+on() {
+    [ -f "$state" ] && return 0
+    dnd=0
+    if ! notif status | grep -q 'dnd-'; then notif toggleDnd >/dev/null; dnd=1; fi
+    echo "dnd=$dnd" > "$state"
+    hyprctl --batch "\
+keyword animations:enabled 0;\
+keyword decoration:blur:enabled 0;\
+keyword decoration:shadow:enabled 0;\
+keyword decoration:rounding 0;\
+keyword decoration:active_opacity 1;\
+keyword decoration:inactive_opacity 1;\
+keyword decoration:dim_inactive 0;\
+keyword general:gaps_in 0;\
+keyword general:gaps_out 0;\
+keyword general:border_size 1" >/dev/null
+}
+
+off() {
+    [ -f "$state" ] || return 0
+    dnd=0; . "$state"; rm -f "$state"
+    hyprctl reload >/dev/null
+    [ "$dnd" = 1 ] && notif toggleDnd >/dev/null
+    return 0
+}
+
+case "$1" in
+    on) on ;;
+    off) off ;;
+    status) [ -f "$state" ] && echo on || echo off ;;
+    *) if [ -f "$state" ]; then off; else on; fi ;;
+esac

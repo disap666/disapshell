@@ -1,0 +1,2 @@
+# Battery status access for the active local desktop session only.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0951", ATTRS{idProduct}=="1713", TAG+="uaccess"

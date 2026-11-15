@@ -1,0 +1,8 @@
+{
+  "visible": false,
+  "onTop": false,
+  "look": "card",
+  "interval": 1,
+  "procs": true,
+  "opacity": 0.8
+}

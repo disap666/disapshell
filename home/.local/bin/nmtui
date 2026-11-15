@@ -1,0 +1,5 @@
+#!/bin/sh
+# Keep the theme local to nmtui; forward subcommands and arguments unchanged.
+unset NEWT_COLORS
+export NEWT_COLORS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/nmtui/colors"
+exec /usr/bin/nmtui "$@"

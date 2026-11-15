@@ -1,0 +1,20 @@
+{
+  "gapsIn": 5,
+  "gapsOut": 10,
+  "rounding": 14,
+  "borderSize": 2,
+  "resizeOnBorder": true,
+  "activeBorder": "#c4c4ab",
+  "activeBorder2": "#d8d8ca",
+  "borderAngle": 45,
+  "inactiveBorder": "#2b2b2b",
+  "blur": true,
+  "blurSize": 10,
+  "blurPasses": 3,
+  "shadow": true,
+  "shadowRange": 28,
+  "inactiveOpacity": 100,
+  "dimInactive": false,
+  "animations": true,
+  "animStyle": "Мягкие"
+}

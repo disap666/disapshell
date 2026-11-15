@@ -1,0 +1,4 @@
+#!/bin/sh
+# Preview mode is never inherited by a real lock request.
+unset RICE_LOCK_PREVIEW
+qs -n -c RiceLock || exec hyprlock --grace 0

@@ -1,0 +1,220 @@
+diff --git a/Makefile b/Makefile
+index 3772a70..92f1e43 100644
+--- a/Makefile
++++ b/Makefile
+@@ -8,13 +8,14 @@ VERSION_SCRIPT = scripts/generate-plugin-version.sh
+ # OUT lets test builds land somewhere other than the path the desktop loads,
+ # e.g. `make OUT=.build/dev/spatialoverview.so`.
+ OUT ?= spatialoverview.so
+-OBJDIR = .build/obj
++OBJDIR ?= .build/obj
++OPTFLAGS ?= -O2
+ 
+ SOURCES = main.cpp BarrelShader.cpp Config.cpp DropIndicator.cpp Experiments.cpp Hud.cpp Icons.cpp Memory.cpp Navigator.cpp OverviewGesture.cpp OverviewManager.cpp \
+           OverviewPassElement.cpp OverviewRender.cpp Popups.cpp Cursor.cpp Tuning.cpp Window.cpp scrollOverview.cpp
+ OBJECTS = $(SOURCES:%.cpp=$(OBJDIR)/%.o)
+ PKGS    = pixman-1 libdrm hyprland pangocairo libinput libudev wayland-server xkbcommon '$(LUA_PKG) >= 5.4'
+-CXXFLAGS_ALL = -fPIC $(EXTRA_FLAGS) -I.build -g -std=c++2b -Wno-narrowing `pkg-config --cflags $(PKGS)`
++CXXFLAGS_ALL = -fPIC $(OPTFLAGS) $(EXTRA_FLAGS) -I.build -g -std=c++2b -Wno-narrowing `pkg-config --cflags $(PKGS)`
+ 
+ ifeq ($(CXX),g++)
+     EXTRA_FLAGS += -fno-gnu-unique
+@@ -30,7 +31,7 @@ all: $(OBJECTS)
+ # The lens shader is compiled into the plugin (#embed in BarrelShader.cpp).
+ $(OBJDIR)/BarrelShader.o: shaders/barrel.frag
+ 
+-$(OBJDIR)/%.o: %.cpp $(VERSION_HEADER) $(wildcard *.hpp)
++$(OBJDIR)/%.o: %.cpp $(VERSION_HEADER) $(wildcard *.hpp) Makefile
+ 	@mkdir -p $(OBJDIR)
+ 	$(CXX) -c $(CXXFLAGS_ALL) $< -o $@
+ 
+@@ -67,6 +68,9 @@ SAFE_UNLOAD = .build/safe-unload.so
+ 
+ safe-unload: $(SAFE_UNLOAD)
+ 
++.build/cancel-pointer-release.so: tests/tools/cancel-pointer-release.cpp
++	$(CXX) -shared $(CXXFLAGS_ALL) $< -o $@
++
+ $(SAFE_UNLOAD): scripts/safe-unload.cpp
+ 	@mkdir -p $(dir $@)
+ 	$(CXX) -shared $(CXXFLAGS_ALL) $< -o $@.next
+diff --git a/scrollOverview.cpp b/scrollOverview.cpp
+index 5c9a055..cf426c5 100644
+--- a/scrollOverview.cpp
++++ b/scrollOverview.cpp
+@@ -42,6 +42,7 @@
+ #include <hyprland/src/layout/space/Space.hpp>
+ #include <hyprland/src/layout/target/Target.hpp>
+ #include <hyprland/src/layout/algorithm/tiled/scrolling/ScrollingAlgorithm.hpp>
++#include <hyprland/src/layout/algorithm/tiled/dwindle/DwindleAlgorithm.hpp>
+ #include <hyprland/src/desktop/state/GlobalWindowController.hpp>
+ #include <hyprland/src/pointer/cursor/CursorShapeOverrideController.hpp>
+ #include <hyprland/src/desktop/state/FocusState.hpp>
+@@ -209,8 +210,80 @@ static void moveCanvasWindowToWorkspace(const PHLWINDOW& w, const PHLWORKSPACE&
+     attachCanvasLayoutTarget(w);
+ }
+ 
++// Detaching every tiled target destroys Dwindle's tree. Keep an independent
++// copy before the first detach, with weak target references. Only restore it
++// when the same algorithm and exact target set are still alive.
++struct SCanvasDwindleTree {
++    WP<Layout::CAlgorithm> algorithm;
++    const Layout::ITiledAlgorithm* tiledInstance = nullptr;
++    std::vector<SP<Layout::Tiled::SDwindleNodeData>> nodes;
++};
++static std::unordered_map<WORKSPACEID, SCanvasDwindleTree> g_canvasDwindleTrees;
++
++static void saveCanvasDwindleTree(const PHLWINDOW& window) {
++    const auto WS = window ? window->m_workspace : nullptr;
++    const auto ALGO = WS && WS->m_space ? WS->m_space->algorithm() : nullptr;
++    auto* dwindle = ALGO ? dc<Layout::Tiled::CDwindleAlgorithm*>(ALGO->m_tiled.get()) : nullptr;
++    if (!dwindle || g_canvasDwindleTrees.contains(WS->m_id))
++        return;
++    SCanvasDwindleTree saved{.algorithm = ALGO, .tiledInstance = dwindle};
++    std::unordered_map<const Layout::Tiled::SDwindleNodeData*, SP<Layout::Tiled::SDwindleNodeData>> copies;
++    for (const auto& node : dwindle->m_dwindleNodesData) {
++        auto copy = makeShared<Layout::Tiled::SDwindleNodeData>(*node);
++        copies.emplace(node.get(), copy);
++        saved.nodes.push_back(copy);
++    }
++    const auto cloneRef = [&](const WP<Layout::Tiled::SDwindleNodeData>& ref) -> WP<Layout::Tiled::SDwindleNodeData> {
++        const auto original = ref.lock();
++        const auto it = copies.find(original.get());
++        return it == copies.end() ? WP<Layout::Tiled::SDwindleNodeData>{} : it->second;
++    };
++    for (auto& node : saved.nodes) {
++        node->pParent = cloneRef(node->pParent);
++        node->children[0] = cloneRef(node->children[0]);
++        node->children[1] = cloneRef(node->children[1]);
++        node->self = node;
++    }
++    g_canvasDwindleTrees.emplace(WS->m_id, std::move(saved));
++}
++
++static void restoreCanvasDwindleTrees() {
++    for (auto& [id, saved] : g_canvasDwindleTrees) {
++        const auto ALGO = saved.algorithm.lock();
++        auto* dwindle = ALGO ? dc<Layout::Tiled::CDwindleAlgorithm*>(ALGO->m_tiled.get()) : nullptr;
++        if (!dwindle || dwindle != saved.tiledInstance)
++            continue;
++        std::unordered_set<const Layout::ITarget*> original, current;
++        bool validTree = true;
++        for (const auto& node : saved.nodes) {
++            if (node->isNode)
++                continue;
++            const auto TARGET = node->pTarget.lock();
++            if (!TARGET || TARGET->floating() || TARGET->space() != ALGO->space()) {
++                validTree = false;
++                break;
++            }
++            original.emplace(TARGET.get());
++        }
++        for (const auto& ref : ALGO->m_tiledTargets) {
++            if (const auto target = ref.lock())
++                current.emplace(target.get());
++        }
++        // New, closed or moved windows need the newly built live tree.
++        if (!validTree || original != current)
++            continue;
++        dwindle->m_dwindleNodesData = std::move(saved.nodes);
++        dwindle->recalculate();
++    }
++    g_canvasDwindleTrees.clear();
++}
++
+ static void restoreCanvasNativeLayout() {
+-    if (g_canvasNativeLayout.empty()) return;
++    if (g_canvasNativeLayout.empty()) {
++        g_canvasDwindleTrees.clear();
++        g_canvasManagedTargets.clear();
++        return;
++    }
+     g_canvasRestoring = true;
+     for (auto& [id, saved] : g_canvasNativeLayout) {
+         const auto w = saved.window.lock();
+@@ -234,6 +307,7 @@ static void restoreCanvasNativeLayout() {
+         }
+         Fullscreen::controller()->setFullscreenMode(w, saved.fullscreen.internal, saved.fullscreen.client);
+     }
++    restoreCanvasDwindleTrees();
+     g_canvasNativeLayout.clear();
+     g_canvasManagedTargets.clear();
+     g_canvasRestoring = false;
+@@ -1638,9 +1712,13 @@ CScrollOverview::CScrollOverview(PHLWORKSPACE startedOn_, bool swipe_, PHLMONITO
+                 submapMouseClickPending = false;
+                 submapMouseClickButton  = 0;
+ 
+-                if (!INVERT_DRAG_MODE)
+-                    beginWindowDrag(windowAtOverviewPoint(dragStartMouseLocal));
+-                else
++                if (!INVERT_DRAG_MODE) {
++                    const auto WINDOW = windowAtOverviewPoint(dragStartMouseLocal);
++                    if (!WINDOW && navigatorOwnsPointer())
++                        beginScrollingPanAtPoint(dragStartMouseLocal);
++                    else
++                        beginWindowDrag(WINDOW);
++                } else
+                     beginScrollingPanAtPoint(dragStartMouseLocal);
+             }
+ 
+@@ -1710,7 +1788,12 @@ CScrollOverview::CScrollOverview(PHLWORKSPACE startedOn_, bool swipe_, PHLMONITO
+     };
+ 
+     auto onMouseButton = [this](IPointer::SButtonEvent event, Event::SCallbackInfo& info) {
+-        if (info.cancelled || sessionLocked())
++        // Once we own a press, its release must finish our gesture even if
++        // another input handler consumes it. Otherwise the old window keeps
++        // its drag preview and can be picked up by the next press.
++        const bool OWNEDRELEASE = event.state == WL_POINTER_BUTTON_STATE_RELEASED &&
++            (g_pointerGrabOverview == this || clientGestureButton == event.button || canvasForwardedPointerButtons.contains(event.button));
++        if ((info.cancelled && !OWNEDRELEASE) || sessionLocked())
+             return;
+ 
+         const bool FORWARDEDTOPLAYERRELEASE =
+@@ -4586,6 +4669,7 @@ bool CScrollOverview::manageCanvasWindow(PHLWINDOW window, bool placeNew) {
+         return false;
+ 
+     if (window->m_workspace && window->m_workspace->m_isSpecialWorkspace) return false;
++    saveCanvasDwindleTree(window);
+     if (!g_canvasNativeLayout.contains(window->m_stableID))
+         g_canvasNativeLayout.emplace(window->m_stableID, saveCanvasWindow(window));
+ 
+@@ -8112,9 +8196,18 @@ bool CScrollOverview::shouldAllowRealtimePreviewSchedule() {
+     if (closing)
+         return true;
+ 
++    // Input must stay responsive until the grab ends, including the frames
++    // queued after inputFramePending has already been consumed. The 30 Hz
++    // preview budget is only for idle previews, never direct manipulation.
++    if (dragActiveWindow || resizeActiveWindow || scrollingPanPointerDown || landingDrag || canvasPinching)
++        return true;
++
+     if (scale->isBeingAnimated() || viewOffset->isBeingAnimated())
+         return true;
+ 
++    if (isCanvasDesktop() && !shouldSuppressRenderDamage())
++        return true;
++
+     if (realtimePreviewFrameQueued) {
+         scheduleRealtimePreviewFrame();
+         return false;
+@@ -10312,7 +10405,8 @@ bool CScrollOverview::cycleAltTab(int direction) {
+ 
+ bool CScrollOverview::jumpCanvasMinimap(const Vector2D& rawLocal) {
+     const auto MONITOR = pMonitor.lock();
+-    if (!MONITOR || !isCanvasNavigationActive())
++    // Disabled chrome must not leave an invisible hit target over windows.
++    if (!MONITOR || !isCanvasNavigationActive() || !ScrollOverview::Config::getCanvasMinimapEnabled() || overviewProgress() <= 0.001F)
+         return false;
+ 
+     const float ZOOM = std::max(scale->value(), 0.01F);
+@@ -10379,6 +10473,9 @@ bool CScrollOverview::handleExperimentClick(uint32_t button, uint32_t state, con
+ 
+     if (jumpCanvasMinimap(rawLocal)) {
+         g_pointerGrabOverview = this;
++        // This click belongs to the minimap, including its release. Do not
++        // select the window that the camera has just moved under the cursor.
++        navigatorSwallowedButtons.emplace(button);
+         return true;
+     }
+ 

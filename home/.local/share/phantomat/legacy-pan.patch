@@ -1,0 +1,21 @@
+diff --git a/scrollOverview.cpp b/scrollOverview.cpp
+index 5c9a055..fcff760 100644
+--- a/scrollOverview.cpp
++++ b/scrollOverview.cpp
+@@ -1638,9 +1638,13 @@ CScrollOverview::CScrollOverview(PHLWORKSPACE startedOn_, bool swipe_, PHLMONITO
+                 submapMouseClickPending = false;
+                 submapMouseClickButton  = 0;
+ 
+-                if (!INVERT_DRAG_MODE)
+-                    beginWindowDrag(windowAtOverviewPoint(dragStartMouseLocal));
+-                else
++                if (!INVERT_DRAG_MODE) {
++                    const auto WINDOW = windowAtOverviewPoint(dragStartMouseLocal);
++                    if (!WINDOW && navigatorOwnsPointer())
++                        beginScrollingPanAtPoint(dragStartMouseLocal);
++                    else
++                        beginWindowDrag(WINDOW);
++                } else
+                     beginScrollingPanAtPoint(dragStartMouseLocal);
+             }
+ 

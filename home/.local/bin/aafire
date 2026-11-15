@@ -1,0 +1,11 @@
+#!/bin/sh
+# Use the terminal's glass background instead of aalib's separate X11 window.
+# Temporarily tint the default foreground; restore Kitty's configured color.
+if [ -t 1 ]; then
+    printf '\033]10;#c6acee\007'
+    trap 'printf "\033]110\007"' EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    trap 'exit 129' HUP
+fi
+/usr/bin/aafire -driver curses -kbddriver curses -noreverse -noinverse "$@"

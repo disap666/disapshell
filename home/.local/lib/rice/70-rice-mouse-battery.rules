@@ -1,0 +1,4 @@
+# HATOR/Compx Pulsar 3 Ultra Wireless (379a:3901), command interface only.
+# Separate parent matches: USB identity and interface number are on different ancestors.
+ACTION!="remove", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="379a", ATTRS{idProduct}=="3901", ENV{RICE_MOUSE_BATTERY}="1"
+ACTION!="remove", SUBSYSTEM=="hidraw", ENV{RICE_MOUSE_BATTERY}=="1", ATTRS{bInterfaceNumber}=="01", OWNER="1000", MODE="0600", TAG+="uaccess"

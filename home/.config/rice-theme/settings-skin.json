@@ -1,0 +1,17 @@
+{
+  "skin": "glass",
+  "crt": null,
+  "glitch": null,
+  "caps": null,
+  "accent": "",
+  "logo": "",
+  "ticker": null,
+  "font": "skin",
+  "autoSkin": false,
+  "daySkin": "glass",
+  "nightSkin": "jedi",
+  "scanBand": true,
+  "vignette": true,
+  "textScale": 0.9,
+  "liveApply": true
+}

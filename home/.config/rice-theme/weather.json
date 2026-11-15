@@ -1,0 +1,12 @@
+{
+  "visible": false,
+  "onTop": false,
+  "look": "thermo",
+  "layout": "compact",
+  "city": "",
+  "units": "c",
+  "wind": "ms",
+  "live": true,
+  "refresh": 20,
+  "demo": ""
+}

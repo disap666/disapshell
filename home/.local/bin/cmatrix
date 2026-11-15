@@ -1,0 +1,8 @@
+#!/bin/sh
+# Keep the terminal palette and transparent background of this rice.
+CMATRIX_COLOR=magenta
+CMATRIX_DELAY=4
+if [ -r "$HOME/.config/cmatrix/config" ]; then
+    . "$HOME/.config/cmatrix/config"
+fi
+exec /usr/bin/cmatrix -a -b -u "$CMATRIX_DELAY" -C "$CMATRIX_COLOR" "$@"

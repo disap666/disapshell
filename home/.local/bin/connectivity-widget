@@ -1,0 +1,19 @@
+#!/bin/sh
+mode=wifi
+[ "${1-}" = '--bluetooth' ] && mode=bluetooth
+call_popup() {
+    reply=$(qs ipc -c RiceConnectivity call connectivity toggle "$mode" 2>&1) || return 1
+    case "$reply" in
+        *'Not ready'*) return 1 ;;
+    esac
+}
+if call_popup; then exit 0; fi
+qs -d -n -c RiceConnectivity >/dev/null 2>&1
+attempt=0
+while [ "$attempt" -lt 50 ]; do
+    if call_popup; then exit 0; fi
+    attempt=$((attempt + 1))
+    sleep 0.1
+done
+notify-send 'Connectivity' 'Could not open Wi-Fi / Bluetooth. See qs log -c RiceConnectivity.'
+exit 1

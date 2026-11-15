@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=TTY Clock
+Comment=Лавандовые часы с секундами и датой
+Exec=kitty --class rice-tty-clock --title "TTY Clock" -o initial_window_width=76c -o initial_window_height=22c -e @HOME@/.local/bin/tty-clock
+Icon=preferences-system-time
+Categories=Utility;Clock;
+Terminal=false

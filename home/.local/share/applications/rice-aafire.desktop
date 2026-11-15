@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AAFire
+Comment=Лавандовое ASCII-пламя на сливовом стекле
+Exec=kitty --class rice-aafire --title AAFire -o initial_window_width=90c -o initial_window_height=26c -e @HOME@/.local/bin/aafire
+Icon=utilities-terminal
+Categories=Utility;
+Terminal=false

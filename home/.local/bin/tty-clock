@@ -1,0 +1,3 @@
+#!/bin/sh
+# Lavender accent from the Kitty palette; keep local time and a quiet layout.
+exec /usr/bin/tty-clock -c -s -C 5 -f '%a · %d.%m.%Y' "$@"

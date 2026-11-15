@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Cava
+Comment=Лавандовый аудиовизуализатор
+Exec=kitty --class rice-cava --title Cava -e /usr/bin/cava
+Icon=multimedia-volume-control
+Categories=AudioVideo;Audio;
+Terminal=false

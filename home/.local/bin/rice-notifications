@@ -1,0 +1,8 @@
+#!/bin/sh
+# Notifications live in the shared RiceDesktop process.
+#   --daemon  just make sure it runs;  --dnd  toggle Do Not Disturb;  no args  toggle the panel
+~/.local/bin/rice-desktop || exit 1
+[ "${1-}" = --daemon ] && exit 0
+method=toggle
+[ "${1-}" = --dnd ] && method=toggleDnd
+exec qs ipc -c RiceDesktop call notifications "$method" >/dev/null 2>&1

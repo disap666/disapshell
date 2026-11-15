@@ -1,0 +1,19 @@
+QWidget { color: #f0edf9; selection-background-color: #675181; selection-color: #ffffff; }
+QMainWindow, QDialog, QSplitter, QStackedWidget { background-color: #201e30; }
+QAbstractScrollArea, QAbstractScrollArea > QWidget, QAbstractScrollArea > QWidget > QWidget, DolphinView, DolphinItemListView { background-color: #252236; color: #f0edf9; }
+QTreeView, QListView, QTableView { background: #252236; alternate-background-color: #2c283f; border: none; color: #f0edf9; }
+QTreeView::item, QListView::item { padding: 5px; border-radius: 6px; }
+QTreeView::item:selected, QListView::item:selected { background: #675181; color: white; }
+QToolBar, QMenuBar, QStatusBar, QDockWidget { background: #1b1929; color: #e8e2f5; border: none; }
+QToolBar { spacing: 6px; padding: 7px; }
+QToolButton { background: transparent; border: none; border-radius: 7px; padding: 6px; color: #f0edf9; }
+QToolButton:hover, QToolButton:checked { background: #443653; }
+QLineEdit, KUrlNavigator { background: #302b43; color: #f5f0ff; border: 1px solid #514562; border-radius: 7px; padding: 5px; }
+QMenu { background: #292439; color: #f0edf9; border: 1px solid #625174; padding: 6px; }
+QMenu::item:selected { background: #675181; border-radius: 5px; }
+QScrollBar:vertical { background: #252236; width: 9px; }
+QScrollBar::handle:vertical { background: #74618f; border-radius: 4px; min-height: 28px; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QToolTip { background: #302b43; color: #fff; border: 1px solid #847099; padding: 5px; }
+
+KUrlNavigator, KUrlNavigatorButton, KUrlNavigator > QWidget { background: #302b43; color: #f5f0ff; }

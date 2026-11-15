@@ -1,0 +1,25 @@
+[Icon Theme]
+Name=Lavender Glass
+Inherits=breeze-dark,hicolor
+Directories=scalable/places,scalable/mimetypes,scalable/devices
+
+[scalable/places]
+Size=64
+Type=Scalable
+MinSize=16
+MaxSize=256
+Context=Places
+
+[scalable/mimetypes]
+Size=64
+Type=Scalable
+MinSize=16
+MaxSize=256
+Context=MimeTypes
+
+[scalable/devices]
+Size=64
+Type=Scalable
+MinSize=16
+MaxSize=256
+Context=Devices

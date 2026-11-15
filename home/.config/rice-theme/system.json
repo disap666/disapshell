@@ -1,0 +1,17 @@
+{
+  "layouts": "us,ru,ua",
+  "layoutSwitch": "Alt + Shift",
+  "repeatDelay": 600,
+  "repeatRate": 25,
+  "numlock": false,
+  "focus": "По клику",
+  "sensitivity": 0,
+  "naturalScroll": false,
+  "tapToClick": true,
+  "disableTyping": true,
+  "gestures": false,
+  "nightMode": "Выключен",
+  "nightTemp": 4500,
+  "nightFrom": "21:00",
+  "nightTo": "07:00"
+}

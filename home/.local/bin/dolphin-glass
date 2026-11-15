@@ -1,0 +1,4 @@
+#!/bin/sh
+export QT_STYLE_OVERRIDE=Breeze
+export QT_QPA_PLATFORMTHEME=kde
+exec /usr/bin/dolphin --new-window -stylesheet "$HOME/.local/share/dolphin-glass/theme.qss" "$@"

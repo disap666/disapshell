@@ -1,0 +1,17 @@
+{
+  "style": "Обложка",
+  "blur": 55,
+  "dim": 25,
+  "video": true,
+  "videoOpacity": 1,
+  "clock24": true,
+  "clockSize": 138,
+  "showDate": true,
+  "showUser": true,
+  "inputWidth": 320,
+  "rounding": 19,
+  "placeholder": "Введите пароль",
+  "showMedia": true,
+  "showWidgets": true,
+  "powerButtons": true
+}

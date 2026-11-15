@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Обои
+Comment=Галерея обоев из папки wallpapers
+Exec=@HOME@/.local/bin/wallpaper-picker
+Icon=preferences-desktop-wallpaper
+Terminal=false
+Categories=Settings;DesktopSettings;

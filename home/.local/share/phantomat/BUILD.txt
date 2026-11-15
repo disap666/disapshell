@@ -1,0 +1,13 @@
+Repository: https://github.com/kaolti/phantomat
+Commit: a1e8a0806541640d01503ac861a8a39548de8724
+Hyprland: 0.56.2 (efb50993780079460b0cbed1363e2166a2de1d9f)
+Local patches: local-fixes.patch (submap empty-space pan; safe Dwindle tree restoration).
+
+2026-11-02: optimized motion build (-O2), interactive drags/resizes/pans and canvas window animations bypass idle preview frame throttling.
+Build: make -j4 OBJDIR=.build/obj-motion OUT=.build/motion/spatialoverview.so
+Previous live binary: @HOME@/Code/phantomat/.build/spatialoverview.before-motion.so
+
+2026-11-02: drag isolation fix: disabled minimap cannot intercept clicks; minimap owns its release; canvas-owned releases complete even when cancelled by another input handler.
+Build: make -j4 OBJDIR=.build/obj-isolation OUT=.build/isolation/spatialoverview.so
+Regression: make test-tools .build/cancel-pointer-release.so; python3 tests/drag-isolation-legacy.py .build/isolation/spatialoverview.so
+Previous binary: @HOME@/Code/phantomat/.build/spatialoverview.before-isolation.so

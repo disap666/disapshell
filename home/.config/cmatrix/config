@@ -1,0 +1,3 @@
+# Uses Kitty magenta (#c6acee) and its brighter lavender shade.
+CMATRIX_COLOR=magenta
+CMATRIX_DELAY=4

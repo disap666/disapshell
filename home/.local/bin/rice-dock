@@ -1,0 +1,3 @@
+#!/bin/sh
+# Dock lives in the shared RiceDesktop process.
+exec ~/.local/bin/rice-desktop

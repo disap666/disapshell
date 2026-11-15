@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=CMatrix
+Comment=Матрица в лавандовых цветах
+Exec=kitty --class rice-cmatrix --title CMatrix -e @HOME@/.local/bin/cmatrix
+Icon=utilities-terminal
+Categories=Utility;
+Terminal=false

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Weather widget lives in the shared RiceDesktop process. --toggle shows/hides it.
+~/.local/bin/rice-desktop || exit 1
+if [ "${1-}" = "--toggle" ]; then exec qs ipc -c RiceDesktop call weather toggle; fi
